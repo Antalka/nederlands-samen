@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BookOpen, Home as HomeIcon, Users, UserRound, ArrowRight } from 'lucide-react';
 import { Home, topics } from './components/Home';
 import { Practice } from './components/Practice';
+import { GroupGame } from './components/GroupGame';
 import { getQuestions, getQuestionCount } from './services/questions';
 import { load, save } from './services/storage';
 import { signInAnonymously } from './services/auth';
@@ -248,23 +249,7 @@ export default function App() {
             onAttempt={onAttempt}
           />
         ) : (
-          <main className="page">
-            <button className="back" onClick={() => setPage('home')}>
-              ← Înapoi
-            </button>
-            <div className="panel group-coming">
-              <div className="huge">🎮</div>
-              <span className="eyebrow">BINNENKORT BESCHIKBAAR</span>
-              <h1>Jocul de grup vine în curând!</h1>
-              <p>
-                Vom putea intra cu un cod de cameră, răspunde împreună și urmări clasamentul în timp
-                real. Pentru demo, încearcă exercițiile individuale.
-              </p>
-              <button className="btn primary" onClick={() => start('mixed')}>
-                Exersează acum <ArrowRight size={18} />
-              </button>
-            </div>
-          </main>
+          <GroupGame nickname={progress.name} onExit={() => setPage('home')} />
         )}
         <div className="mobile-nav">
           <button onClick={() => setPage('home')}>

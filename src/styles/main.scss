@@ -690,3 +690,19 @@ h2 {
   font-weight: 700;
 }
 .topic-card .topic-count svg { color: inherit; }
+
+/* Multiplayer – consistent with the existing Nederlands Samen visual language */
+.group-game .practice-top h1 { display: flex; align-items: center; gap: 12px; }
+.group-layout { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+.group-box { margin-bottom: 20px; }
+.group-box h2, .group-box h3 { display: flex; align-items: center; gap: 10px; }
+.group-box label { display: block; margin: 16px 0 7px; font-weight: 700; }
+.group-box select, .group-box input:not(.answer) { display: block; width: 100%; border: 1px solid #ddd5f5; border-radius: 12px; padding: 13px; background: white; color: #272744; font: inherit; }
+.group-box > .btn { margin-top: 20px; }
+.group-room-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.group-room-header h2 { font-size: 38px; letter-spacing: 6px; margin: 5px 0; }
+.group-players { list-style: none; padding: 0; margin: 12px 0 0; }
+.group-players li { display: flex; align-items: center; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #eeeafa; gap: 10px; }
+.group-next { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.group-next small { color: #7165a5; }
+@media (max-width: 760px) { .group-layout { grid-template-columns: 1fr; } .group-room-header h2 { font-size: 30px; } }
