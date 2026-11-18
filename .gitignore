@@ -20,3 +20,5 @@ dist/
 
 # Dependencies
 node_modules/
+
+supabase/.temp/
