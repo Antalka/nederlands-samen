@@ -12,6 +12,22 @@ export interface Question {
   explanation: string;
   hint: string;
 }
+
+/**
+ * A Supabase adatbázisból érkező kérdés.
+ *
+ * Nem tartalmaz helyes válaszokat,
+ * magyarázatokat vagy segítségeket.
+ */
+export interface PublicQuestion {
+  id: string;
+  type: QuestionType;
+  topic: Topic;
+  level: 'A1' | 'A2';
+  prompt: string;
+  options: string[] | null;
+}
+
 export type PracticeMode = 'mixed' | 'topic' | 'situations';
 export interface Attempt {
   questionId: string;

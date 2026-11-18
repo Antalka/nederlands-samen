@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb } from 'lucide-react';
-import type { Question, Attempt } from '../types';
-import { evaluate, type Evaluation } from '../services/evaluate';
+import type { PublicQuestion, Attempt } from '../types';
+import { checkAnswer, type AnswerResult } from '../services/answers';
+import { getHint } from '../services/hints';
 interface Props {
-  list: Question[];
+  list: PublicQuestion[];
   onExit: () => void;
   onAttempt: (a: Attempt) => void;
   title: string;
@@ -11,8 +12,12 @@ interface Props {
 export function Practice({ list, onExit, onAttempt, title }: Props) {
   const [index, setIndex] = useState(0),
     [answer, setAnswer] = useState(''),
-    [hint, setHint] = useState(false),
-    [result, setResult] = useState<Evaluation | null>(null),
+    [hint, setHint] = useState<string | null>(null),
+    [hintLoading, setHintLoading] = useState(false),
+    [hintError, setHintError] = useState<string | null>(null),
+    [result, setResult] = useState<AnswerResult | null>(null),
+    [submitting, setSubmitting] = useState(false),
+    [submitError, setSubmitError] = useState<string | null>(null),
     [total, setTotal] = useState(0);
   const q = list[index];
   if (!q)
@@ -21,17 +26,35 @@ export function Practice({ list, onExit, onAttempt, title }: Props) {
         Nu există întrebări pentru această categorie. <button onClick={onExit}>Înapoi</button>
       </section>
     );
-  function submit() {
-    if (!answer.trim() || result) return;
-    const r = evaluate(q, answer);
-    setResult(r);
-    setTotal((v) => v + r.score);
-    onAttempt({
-      questionId: q.id,
-      score: r.score,
-      answer,
-      at: new Date().toISOString(),
-    });
+  async function submit() {
+    if (!answer.trim() || result || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const response = await checkAnswer(q.id, answer);
+      setResult(response);
+      setTotal((v) => v + response.score);
+      onAttempt({ questionId: q.id, score: response.score, answer, at: new Date().toISOString() });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'A apărut o eroare.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+  async function revealHint() {
+    if (hintLoading || hint !== null || result) return;
+    const questionId = q.id;
+    setHintLoading(true);
+    setHintError(null);
+    try {
+      const text = await getHint(questionId);
+      // Ha időközben más kérdésre léptünk, ne jelenjen meg az előző segítség.
+      if (list[index]?.id === questionId) setHint(text || 'Nu există încă un indiciu pentru această întrebare.');
+    } catch (error) {
+      setHintError(error instanceof Error ? error.message : 'Indiciul nu a putut fi încărcat.');
+    } finally {
+      setHintLoading(false);
+    }
   }
   function next() {
     if (index === list.length - 1) {
@@ -40,8 +63,10 @@ export function Practice({ list, onExit, onAttempt, title }: Props) {
     }
     setIndex((i) => i + 1);
     setAnswer('');
-    setHint(false);
+    setHint(null);
+    setHintError(null);
     setResult(null);
+    setSubmitError(null);
   }
   return (
     <main className="page">
@@ -79,7 +104,7 @@ export function Practice({ list, onExit, onAttempt, title }: Props) {
               <button
                 key={i}
                 className={answer === o ? 'selected' : ''}
-                disabled={!!result}
+                disabled={!!result || submitting}
                 onClick={() => setAnswer(o)}
               >
                 {o}
@@ -91,44 +116,35 @@ export function Practice({ list, onExit, onAttempt, title }: Props) {
             className="answer"
             placeholder="Scrie răspunsul aici..."
             value={answer}
-            disabled={!!result}
+            disabled={!!result || submitting}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') submit();
             }}
           />
         )}
-        {hint && (
+        {hint !== null && (
           <div className="hint">
             <Lightbulb size={18} />
-            {q.hint}
+            {hint}
           </div>
         )}
         {result && (
-          <div className={`feedback ${result.status}`}>
-            <strong>
-              {result.status === 'correct'
-                ? 'Excelent! Răspuns corect! 🎉'
-                : result.status === 'spelling'
-                  ? 'Aproape perfect! Verifică ortografia.'
-                  : result.status === 'partial'
-                    ? 'Bună încercare! Ai câteva elemente corecte.'
-                    : 'Mai încercăm! Așa învățăm. 💜'}{' '}
-              · {result.score} puncte
-            </strong>
-            <p>
-              <b>Răspuns recomandat:</b> {result.suggested}
-            </p>
-            <p>{q.explanation}</p>
+          <div className={`feedback ${result.correct ? 'correct' : 'incorrect'}`}>
+            <strong>{result.correct ? 'Excelent! Răspuns corect! 🎉' : 'Mai încercăm! Așa învățăm. 💜'} · {result.score} puncte</strong>
+            {result.suggested && <p><b>Răspuns recomandat:</b> {result.suggested}</p>}
+            <p>{result.explanation}</p>
           </div>
         )}
+        {hintError && <p role="alert" style={{ color: '#c0392b' }}>{hintError}</p>}
+        {submitError && <p role="alert" style={{ color: '#c0392b' }}>{submitError}</p>}
         <div className="actions">
-          <button className="btn ghost" onClick={() => setHint((v) => !v)} disabled={!!result}>
-            <Lightbulb size={17} /> Indiciu
+          <button className="btn ghost" onClick={revealHint} disabled={!!result || hint !== null || hintLoading || submitting}>
+            <Lightbulb size={17} /> {hintLoading ? 'Se încarcă...' : 'Indiciu'}
           </button>
           {!result ? (
-            <button className="btn primary" onClick={submit} disabled={!answer.trim()}>
-              <CheckCircle2 size={17} /> Verifică
+            <button className="btn primary" onClick={submit} disabled={!answer.trim() || submitting}>
+              <CheckCircle2 size={17} /> {submitting ? 'Se verifică...' : 'Verifică'}
             </button>
           ) : (
             <button className="btn primary" onClick={next}>
@@ -138,8 +154,7 @@ export function Practice({ list, onExit, onAttempt, title }: Props) {
         </div>
       </div>
       <p className="smallnote">
-        Răspunsurile libere sunt evaluate prin reguli simple; formulările alternative pot necesita
-        verificare umană.
+        Poți cere un indiciu înainte de a răspunde. Verificarea se face în siguranță pe server.
       </p>
     </main>
   );

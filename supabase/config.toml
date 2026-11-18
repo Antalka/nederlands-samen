@@ -1,0 +1,5 @@
+[functions.check-answer]
+verify_jwt = false # JWT verificat în cod prin auth.getUser(token), pentru publishable keys
+
+[functions.get-hint]
+verify_jwt = false # Felhasználói JWT ellenőrzése a függvényen belül
