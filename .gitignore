@@ -1,24 +1,8 @@
 node_modules/
 dist/
-
-*.tsbuildinfo
-*.log
-.DS_Store
-
-
-# Local workspace
-.allai/
-*.rar
-
-# Environment variables
-!.env.example
 .env
-.env.local
-.env.*.local
-!.env.example
 .env.*
-
-# Dependencies
-node_modules/
-
+!.env.example
+*.tsbuildinfo
+.supabase/
 supabase/.temp/
