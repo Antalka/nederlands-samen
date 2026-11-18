@@ -675,3 +675,18 @@ h2 {
     padding: 25px;
   }
 }
+
+/* Supabase question counts on topic cards */
+.topic-card .topic-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #f1edff;
+  color: #7362d5;
+  font-size: 12px;
+  font-weight: 700;
+}
+.topic-card .topic-count svg { color: inherit; }

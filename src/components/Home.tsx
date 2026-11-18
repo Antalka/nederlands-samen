@@ -61,8 +61,9 @@ interface Props {
   progress: Progress;
   onStart: (mode: 'mixed' | 'topic' | 'situations', topic?: Topic) => void;
   onGroup: () => void;
+  topicCounts: Partial<Record<Topic, number>>;
 }
-export function Home({ progress, onStart, onGroup }: Props) {
+export function Home({ progress, onStart, onGroup, topicCounts }: Props) {
   const points = progress.attempts.reduce((n, a) => n + a.score, 0);
   return (
     <main className="page">
@@ -147,6 +148,9 @@ export function Home({ progress, onStart, onGroup }: Props) {
               <strong>{t.label}</strong>
               <small>{t.detail}</small>
             </div>
+            <span className="topic-count" title="Exerciții disponibile">
+              <BookOpen size={13} /> {topicCounts[t.id] ?? '…'}
+            </span>
             <ArrowRight size={18} />
           </button>
         ))}
